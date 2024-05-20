@@ -14,10 +14,10 @@ The SReLU (`Sine Rectified Linear Unit`) is a novel activation function designed
 ## Activation Function Definition
 The SReLU activation function can be defined as follows:
 
-``` math
-f(x) = 0    , if x <= -t
-f(x) = 1/2 * (sin((pi/2t) * x) + 1) * x    , if -t < x < t
-f(x) = x    , if x >= t
+```
+f(x) = 0    , if x <= -t;
+f(x) = 1/2 * (sin((pi/2t) * x) + 1) * x    , if -t < x < t;
+f(x) = x    , if x >= t;
 ```
 
 Python code:

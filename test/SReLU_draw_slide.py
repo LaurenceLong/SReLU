@@ -45,7 +45,7 @@ axcolor = 'lightgoldenrodyellow'
 ax_t = plt.axes([0.1, 0.15, 0.65, 0.03], facecolor=axcolor)
 
 # 创建滑块
-s_t = Slider(ax_t, 'n', 1e-6, 10, valinit=t_init)
+s_t = Slider(ax_t, 't', 1e-6, 10, valinit=t_init)
 
 
 # 更新函数，响应滑块的变化
