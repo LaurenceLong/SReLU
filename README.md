@@ -58,30 +58,7 @@ To use the SReLU function in your neural network models, simply replace the acti
 ### Comparison with Existing Activations: 
 Performance comparative studies vs. ReLU, GELU, Swish activation
 
-#### Evaluation1: cifar10 airbench
-Performance evaluation use cifar10-airbench:
-Training methods for CIFAR-10 with state-of-the-art speed. https://github.com/KellerJordan/cifar10-airbench
-
-```
-25 rounds with cifar10 airbench94 evaluation
-Activation: SReLU_cuda    Mean: 0.9408    Std: 0.0014  (1st)
-Activation: ReLU          Mean: 0.9368    Std: 0.0013
-Activation: GELU          Mean: 0.9400    Std: 0.0011
-Activation: SiLU          Mean: 0.9394    Std: 0.0013
-
-25 rounds with cifar10 airbench95 evaluation
-Activation: SReLU_cuda    Mean: 0.9502    Std: 0.0011  (2nd)
-Activation: ReLU          Mean: 0.9478    Std: 0.0011
-Activation: GELU          Mean: 0.9507    Std: 0.0014  (1st)
-Activation: SiLU          Mean: 0.9499    Std: 0.0013
-
-10 rounds with cifar10 airbench96 evaluation
-Activation: SReLU_cuda    Mean: 0.9603    Std: 0.0013  (≈1st)
-Activation: ReLU          Mean: 0.9583    Std: 0.0012
-Activation: GELU          Mean: 0.9603    Std: 0.0013
-Activation: SiLU          Mean: 0.9604    Std: 0.0013
-```
-#### Evaluation2: mnist on 3-Layer MLP
+#### Evaluation1: mnist on 3-Layer MLP
 
 ```
 # Performance evaluation use simple MLP as below
@@ -106,13 +83,46 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
 ```
 
 ##### 20Epochs x 10 training & evaluate activations of SReLU_cuda vs. nn.RELU, nn.GELU, nn.SiLU 
-![mnist.png](mnist.png)
+![mnist_20ep_10x.png](mnist_20ep_10x.png)
 ```
-Activation: SReLU_cuda    Mean: 97.0001    Std(>10Epochs): 0.0134
-Activation: ReLU          Mean: 96.8088    Std(>10Epochs): 0.0155
-Activation: GELU          Mean: 97.0593    Std(>10Epochs): 0.0140
-Activation: SiLU          Mean: 97.1233    Std(>10Epochs): 0.0102
+Activation: SReLU_cuda    Mean: 97.0001  Mean(>10Epochs): 97.4344   Std(>10Epochs): 0.0134
+Activation: ReLU          Mean: 96.8088  Mean(>10Epochs): 97.3493   Std(>10Epochs): 0.0155
+Activation: GELU          Mean: 97.0593  Mean(>10Epochs): 97.5024   Std(>10Epochs): 0.0140
+Activation: SiLU          Mean: 97.1233  Mean(>10Epochs): 97.5257   Std(>10Epochs): 0.0102
 ```
+##### 50Epochs x 10 training & evaluate activations of SReLU_cuda vs. nn.RELU, nn.GELU, nn.SiLU 
+![mnist_50ep_10x.png](mnist_50ep_10x.png)
+```
+Activation: SReLU_cuda    Mean: 97.3337  Mean(>25Epochs): 97.7727   Std(>25Epochs): 0.0152
+Activation: ReLU          Mean: 97.1613  Mean(>25Epochs): 97.6056   Std(>25Epochs): 0.0158
+Activation: GELU          Mean: 97.3307  Mean(>25Epochs): 97.7181   Std(>25Epochs): 0.0217
+Activation: SiLU          Mean: 97.3537  Mean(>25Epochs): 97.7446   Std(>25Epochs): 0.0246
+```
+
+#### Evaluation2: cifar10 airbench
+Performance evaluation use cifar10-airbench:
+Training methods for CIFAR-10 with state-of-the-art speed. https://github.com/KellerJordan/cifar10-airbench
+
+```
+25 rounds with cifar10 airbench94 evaluation
+Activation: SReLU_cuda    Mean: 0.9408    Std: 0.0014  (1st)
+Activation: ReLU          Mean: 0.9368    Std: 0.0013
+Activation: GELU          Mean: 0.9400    Std: 0.0011
+Activation: SiLU          Mean: 0.9394    Std: 0.0013
+
+25 rounds with cifar10 airbench95 evaluation
+Activation: SReLU_cuda    Mean: 0.9502    Std: 0.0011  (2nd)
+Activation: ReLU          Mean: 0.9478    Std: 0.0011
+Activation: GELU          Mean: 0.9507    Std: 0.0014  (1st)
+Activation: SiLU          Mean: 0.9499    Std: 0.0013
+
+10 rounds with cifar10 airbench96 evaluation
+Activation: SReLU_cuda    Mean: 0.9603    Std: 0.0013  (≈1st)
+Activation: ReLU          Mean: 0.9583    Std: 0.0012
+Activation: GELU          Mean: 0.9603    Std: 0.0013
+Activation: SiLU          Mean: 0.9604    Std: 0.0013
+```
+Comparative analysis reveals that SReLU not only slightly surpasses ReLU in mean accuracy but also closely competes with GELU and SiLU. This underlines its effectiveness in both rapid initial learning and sustained high performance in later training stages, making SReLU a viable choice for models requiring balanced and stable activation dynamics throughout extended training regimes. The graphical trends further corroborate SReLU's robustness in maintaining high accuracy levels, solidifying its position as a strong contender among activation functions.
 
 ## Theoretical Analysis:
 ### Mathematical Computational Complexity
