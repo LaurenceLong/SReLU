@@ -1,7 +1,7 @@
 # SReLU Activation Function
 
 ## Introduction
-The SReLU (`Sine Rectified Linear Unit`) is a novel activation function designed for neural networks that combines characteristics of the popular ReLU, GELU, and Swish activation functions while ensuring continuity and differentiability across its domain. This activation function aims to provide a balance between linear and non-linear responses, adapting to the data's nature and thus potentially improving learning dynamics in deep neural networks.
+The SReLU (`Sinusoidal Rectified Linear Unit`) is a novel activation function designed for neural networks that combines characteristics of the popular ReLU, GELU, and Swish activation functions while ensuring continuity and differentiability across its domain. This activation function aims to provide a balance between linear and non-linear responses, adapting to the data's nature and thus potentially improving learning dynamics in deep neural networks.
 
 ## Features
 - **Continuity and Differentiability**: Unlike some traditional activation functions, SReLU is designed to be smooth and differentiable across its entire domain, which can help in optimizing gradient-based learning methods.
@@ -117,7 +117,7 @@ Activation: SiLU          Mean: 97.1233    Std(>10Epochs): 0.0102
 ## Theoretical Analysis:
 ### Mathematical Computational Complexity
 
-#### SReLU (Sine Rectified Linear Activation Unit):
+#### SReLU (Sinusoidal Rectified Linear Activation Unit):
 - **Nature**: SReLU is a piecewise function that includes 2 simple linear part and a nonlinear part involving a sine function.
 - **Complexity**: The computation of the sine function involves trigonometric operations, which are generally more computationally intensive than basic arithmetic operations (addition, subtraction, multiplication, division) on traditional CPUs. However, modern hardware, such as GPUs, often have optimizations that make trigonometric calculations more efficient.
 
@@ -132,6 +132,6 @@ Activation: SiLU          Mean: 97.1233    Std(>10Epochs): 0.0102
 - **Complexity Ranking**: Theoretically, computational complexity GELU > SReLU ≈ Swish
 
 ## Conclusion
-SReLU (Sine Rectified Linear Activation Unit) represents an innovative approach to activation functions in neural networks, blending linear and nonlinear transformations effectively. SReLU achieves performance comparable to GELU while requiring lower computational resources, making it more efficient. Moreover, it shares a similar computational complexity with Swish but typically delivers superior performance. This balance of computational efficiency and effectiveness not only encourages further exploration and adoption within the machine learning community but also offers practical advantages. 
+SReLU (Sinusoidal Rectified Linear Activation Unit) represents an innovative approach to activation functions in neural networks, blending linear and nonlinear transformations effectively. SReLU achieves performance comparable to GELU while requiring lower computational resources, making it more efficient. Moreover, it shares a similar computational complexity with Swish but typically delivers superior performance. This balance of computational efficiency and effectiveness not only encourages further exploration and adoption within the machine learning community but also offers practical advantages. 
 
-Activation function `Sine Recified Linear Unit`
+Activation function `Sinusoidal Recified Linear Unit`
