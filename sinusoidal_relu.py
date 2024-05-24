@@ -19,8 +19,8 @@ class SReLU_cuda(nn.Module):
 
     def __init__(self, t=2.21, inplace=False):
         super(SReLU_cuda, self).__init__()
-        self.t = torch.tensor(t, dtype=torch.float32)
-        self.a = (torch.pi / 2) / self.t
+        self.t = t
+        self.a = (torch.pi / 2) / t
         self.inplace = inplace
 
     def forward(self, x):
@@ -43,6 +43,9 @@ class SReLUFunction(torch.autograd.Function):
         a = ctx.a
         grad_input = srelu_cuda.backward(grad_output, x, t, a)
         return grad_input, None, None, None
+
+
+SReLU_cuda()
 
 
 class SReLU(nn.Module):
