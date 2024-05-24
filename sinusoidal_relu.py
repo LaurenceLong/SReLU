@@ -45,9 +45,6 @@ class SReLUFunction(torch.autograd.Function):
         return grad_input, None, None, None
 
 
-SReLU_cuda()
-
-
 class SReLU(nn.Module):
     """
     # Non CUDA version
