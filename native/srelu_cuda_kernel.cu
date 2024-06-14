@@ -17,22 +17,12 @@ __global__ void srelu_forward_kernel_half(const half* __restrict__ input,
 
     while (idx < num_elements) {
         half x1 = __ldg(&input[idx]);
-        half x2 = (idx + stride < num_elements) ? __ldg(&input[idx + stride]) : val_zero;
 
-        half out1 = __hle(x1, t_neg) ? val_zero :
+        output[idx] = __hle(x1, t_neg) ? val_zero :
                     (__hge(x1, t) ? x1 :
                      __hdiv(__hmul(x1, __hadd(hsin(__hmul(a, x1)), val_one)), val_two));
 
-        half out2 = __hle(x2, t_neg) ? val_zero :
-                    (__hge(x2, t) ? x2 :
-                     __hdiv(__hmul(x2, __hadd(hsin(__hmul(a, x2)), val_one)), val_two));
-
-        output[idx] = out1;
-        if (idx + stride < num_elements) {
-            output[idx + stride] = out2;
-        }
-
-        idx += stride * 2;
+        idx += stride;
     }
 }
 
@@ -49,17 +39,10 @@ __global__ void srelu_forward_kernel_float(const float* __restrict__ input,
 
     while (idx < num_elements) {
         float x1 = __ldg(&input[idx]);
-        float x2 = (idx + stride < num_elements) ? __ldg(&input[idx + stride]) : val_zero;
 
-        float out1 = (x1 <= -t) ? val_zero : ((x1 >= t) ? x1 : x1 * (sinf(a * x1) + val_one) / val_two);
-        float out2 = (x2 <= -t) ? val_zero : ((x2 >= t) ? x2 : x2 * (sinf(a * x2) + val_one) / val_two);
+        output[idx] = (x1 <= -t) ? val_zero : ((x1 >= t) ? x1 : x1 * (sinf(a * x1) + val_one) / val_two);
 
-        output[idx] = out1;
-        if (idx + stride < num_elements) {
-            output[idx + stride] = out2;
-        }
-
-        idx += stride * 2;
+        idx += stride;
     }
 }
 
@@ -76,17 +59,10 @@ __global__ void srelu_forward_kernel_double(const double* __restrict__ input,
 
     while (idx < num_elements) {
         double x1 = __ldg(&input[idx]);
-        double x2 = (idx + stride < num_elements) ? __ldg(&input[idx + stride]) : val_zero;
 
-        double out1 = (x1 <= -t) ? val_zero : ((x1 >= t) ? x1 : x1 * (sin(a * x1) + val_one) / val_two);
-        double out2 = (x2 <= -t) ? val_zero : ((x2 >= t) ? x2 : x2 * (sin(a * x2) + val_one) / val_two);
+        output[idx] = (x1 <= -t) ? val_zero : ((x1 >= t) ? x1 : x1 * (sin(a * x1) + val_one) / val_two);
 
-        output[idx] = out1;
-        if (idx + stride < num_elements) {
-            output[idx + stride] = out2;
-        }
-
-        idx += stride * 2;
+        idx += stride;
     }
 }
 
@@ -104,36 +80,18 @@ __global__ void srelu_backward_kernel_half(const half* __restrict__ input,
 
     while (idx < num_elements) {
         half x1 = __ldg(&input[idx]);
-        half x2 = (idx + stride < num_elements) ? __ldg(&input[idx + stride]) : val_zero;
 
         half a_mul_x1, sin_value1, cos_value1;
-        half a_mul_x2, sin_value2, cos_value2;
 
         a_mul_x1 = __hmul(a, x1);
         sin_value1 = hsin(a_mul_x1);
         cos_value1 = hcos(a_mul_x1);
 
-        a_mul_x2 = __hmul(a, x2);
-        sin_value2 = hsin(a_mul_x2);
-        cos_value2 = hcos(a_mul_x2);
+        output[idx] = __hle(x1, t_neg) ? val_zero :
+                    (__hge(x1, t) ? output[idx] :
+                     __hmul(output[idx], __hadd(__hdiv(__hadd(__hmul(a_mul_x1, cos_value1), sin_value1), val_two), val_half)));
 
-        // 计算 out1 和 out2
-        half out1 = __hle(x1, t_neg) ? val_zero :
-                    (__hlt(x1, t) ?
-                     __hmul(output[idx], __hadd(__hdiv(__hadd(__hmul(__hmul(a, x1), cos_value1), sin_value1), val_two), val_half)) :
-                     output[idx]);
-
-        half out2 = __hle(x2, t_neg) ? val_zero :
-                    (__hlt(x2, t) ?
-                     __hmul(output[idx + stride], __hadd(__hdiv(__hadd(__hmul(__hmul(a, x2), cos_value2), sin_value2), val_two), val_half)) :
-                     output[idx + stride]);
-
-        output[idx] = out1;
-        if (idx + stride < num_elements) {
-            output[idx + stride] = out2;
-        }
-
-        idx += stride * 2;
+        idx += stride;
     }
 }
 
@@ -150,23 +108,15 @@ __global__ void srelu_backward_kernel_float(const float* __restrict__ input,
 
     while (idx < num_elements) {
         float x1 = __ldg(&input[idx]);
-        float x2 = (idx + stride < num_elements) ? __ldg(&input[idx + stride]) : val_zero;
 
-        float sin_value1, cos_value1;
-        float sin_value2, cos_value2;
+        float a_mul_x1, sin_value1, cos_value1;
 
-        sincosf(a * x1, &sin_value1, &cos_value1);
-        sincosf(a * x2, &sin_value2, &cos_value2);
+        a_mul_x1 = a * x1;
+        sincosf(a_mul_x1, &sin_value1, &cos_value1);
 
-        float out1 = (x1 <= -t) ? val_zero : ((x1 < t) ? output[idx] * ((a * x1 * cos_value1 + sin_value1) / val_two + val_half) : output[idx]);
-        float out2 = (x2 <= -t) ? val_zero : ((x2 < t) ? output[idx + stride] * ((a * x2 * cos_value2 + sin_value2) / val_two + val_half) : output[idx + stride]);
+        output[idx] = (x1 <= -t) ? val_zero : ((x1 >= t) ? output[idx] : output[idx] * ((a_mul_x1 * cos_value1 + sin_value1) / val_two + val_half));
 
-        output[idx] = out1;
-        if (idx + stride < num_elements) {
-            output[idx + stride] = out2;
-        }
-
-        idx += stride * 2;
+        idx += stride;
     }
 }
 
@@ -183,23 +133,15 @@ __global__ void srelu_backward_kernel_double(const double* __restrict__ input,
 
     while (idx < num_elements) {
         double x1 = __ldg(&input[idx]);
-        double x2 = (idx + stride < num_elements) ? __ldg(&input[idx + stride]) : val_zero;
 
-        double sin_value1, cos_value1;
-        double sin_value2, cos_value2;
+        double a_mul_x1, sin_value1, cos_value1;
 
-        sincos(a * x1, &sin_value1, &cos_value1);
-        sincos(a * x2, &sin_value2, &cos_value2);
+        a_mul_x1 = a * x1;
+        sincos(a_mul_x1, &sin_value1, &cos_value1);
 
-        double out1 = (x1 <= -t) ? val_zero : ((x1 < t) ? output[idx] * ((a * x1 * cos_value1 + sin_value1) / val_two + val_half) : output[idx]);
-        double out2 = (x2 <= -t) ? val_zero : ((x2 < t) ? output[idx + stride] * ((a * x2 * cos_value2 + sin_value2) / val_two + val_half) : output[idx + stride]);
+        output[idx] = (x1 <= -t) ? val_zero : ((x1 >= t) ? output[idx] : output[idx] * ((a_mul_x1 * cos_value1 + sin_value1) / val_two + val_half));
 
-        output[idx] = out1;
-        if (idx + stride < num_elements) {
-            output[idx + stride] = out2;
-        }
-
-        idx += stride * 2;
+        idx += stride;
     }
 }
 
