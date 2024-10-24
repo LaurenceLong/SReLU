@@ -20,12 +20,12 @@ __global__ void srelu_forward_kernel_half(const half* __restrict__ input,
     while (idx < num_elements) {
         half x1 = __ldg(&input[idx]);
 
-        if (__hle(x1, t_neg)) {
-            output[idx] = val_zero;
-        } else if (__hlt(x1, t)) {
+        if (__hge(x1, t)) {
+            output[idx] = x1;
+        } else if (__hgt(x1, t_neg)) {
             output[idx] = __hdiv(__hmul(x1, __hadd(hsin(__hmul(a, x1)), val_one)), val_two);
         } else {
-            output[idx] = x1;
+            output[idx] = val_zero;
         }
 
         idx += stride;
@@ -46,12 +46,12 @@ __global__ void srelu_forward_kernel_float(const float* __restrict__ input,
     while (idx < num_elements) {
         float x1 = __ldg(&input[idx]);
 
-        if (x1 <= -t) {
-            output[idx] = val_zero;
-        } else if (x1 < t) {
+        if (x1 >= t) {
+            output[idx] = x1;
+        } else if (x1 > -t) {
             output[idx] = x1 * (sinf(a * x1) + val_one) / val_two;
         } else {
-            output[idx] = x1;
+            output[idx] = val_zero;
         }
 
         idx += stride;
@@ -72,12 +72,12 @@ __global__ void srelu_forward_kernel_double(const double* __restrict__ input,
     while (idx < num_elements) {
         double x1 = __ldg(&input[idx]);
 
-        if (x1 <= -t) {
-            output[idx] = val_zero;
-        } else if (x1 < t) {
+        if (x1 >= t) {
+            output[idx] = x1;
+        } else if (x1 > -t) {
             output[idx] = x1 * (sin(a * x1) + val_one) / val_two;
         } else {
-            output[idx] = x1;
+            output[idx] = val_zero;
         }
 
         idx += stride;
@@ -105,10 +105,11 @@ __global__ void srelu_backward_kernel_half(const half* __restrict__ input,
         sin_value1 = hsin(a_mul_x1);
         cos_value1 = hcos(a_mul_x1);
 
-        if (__hle(x1, t_neg)) {
-            output[idx] = val_zero;
-        } else if (__hlt(x1, t)) {
+        if (__hge(x1, t)) {
+        } else if (__hgt(x1, t_neg)) {
             output[idx] = __hmul(output[idx], __hdiv(__hadd(__hadd(__hmul(a_mul_x1, cos_value1), sin_value1), val_one), val_two));
+        } else {
+            output[idx] = val_zero;
         }
 
         idx += stride;
@@ -134,10 +135,11 @@ __global__ void srelu_backward_kernel_float(const float* __restrict__ input,
 
         sincosf(a_mul_x1, &sin_value1, &cos_value1);
 
-        if (x1 <= -t) {
-            output[idx] = val_zero;
-        } else if (x1 < t) {
+        if (x1 >= t) {
+        } else if (x1 > -t) {
             output[idx] *= (a_mul_x1 * cos_value1 + sin_value1 + val_one) / val_two;
+        } else {
+            output[idx] = val_zero;
         }
 
         idx += stride;
@@ -163,10 +165,11 @@ __global__ void srelu_backward_kernel_double(const double* __restrict__ input,
 
         sincos(a_mul_x1, &sin_value1, &cos_value1);
 
-        if (x1 <= -t) {
-            output[idx] = val_zero;
-        } else if (x1 < t) {
+        if (x1 >= t) {
+        } else if (x1 > -t) {
             output[idx] *= (a_mul_x1 * cos_value1 + sin_value1 + val_one) / val_two;
+        } else {
+            output[idx] = val_zero;
         }
 
         idx += stride;
@@ -273,12 +276,12 @@ torch::Tensor srelu_cuda_forward(torch::Tensor input, double t, double a, bool i
             #pragma omp parallel for
             for (int64_t idx = 0; idx < num_elements; idx++) {
                 scalar_t x = input_data[idx];
-                if (x <= -st) {
-                    output_data[idx] = 0;
-                } else if (x < st) {
+                if (x >= st) {
+                    output_data[idx] = x;
+                } else if (x > -st) {
                     output_data[idx] = x * (sin(sa * x) + 1) / 2;
                 } else {
-                    output_data[idx] = x;
+                    output_data[idx] = 0;
                 }
             }
         }
@@ -312,13 +315,14 @@ torch::Tensor srelu_cuda_backward(torch::Tensor grad_output, torch::Tensor input
                 #pragma omp parallel for
                 for (int64_t idx = 0; idx < num_elements; idx++) {
                     scalar_t x = input_data[idx];
-                    if (x <= -st) {
-                        grad_input_data[idx] = 0;
-                    } else if (x < st) {
+                    if (x >= st) {
+                    } else if (x > -st) {
                         float ax = static_cast<float>(sa * x);
                         float sin_ax, cos_ax;
                         sincos(ax, &sin_ax, &cos_ax);
                         grad_input_data[idx] *= (ax * cos_ax + sin_ax + 1) / 2;
+                    } else {
+                        grad_input_data[idx] = 0;
                     }
                 }
             } else if (std::is_same<scalar_t, double>::value) {
@@ -326,13 +330,14 @@ torch::Tensor srelu_cuda_backward(torch::Tensor grad_output, torch::Tensor input
                 #pragma omp parallel for
                 for (int64_t idx = 0; idx < num_elements; idx++) {
                     scalar_t x = input_data[idx];
-                    if (x <= -st) {
-                        grad_input_data[idx] = 0;
-                    } else if (x < st) {
+                    if (x >= st) {
+                    } else if (x > -st) {
                         double ax = static_cast<double>(sa * x);
                         double sin_ax, cos_ax;
                         sincos(ax, &sin_ax, &cos_ax);
                         grad_input_data[idx] *= (ax * cos_ax + sin_ax + 1) / 2;
+                    } else {
+                        grad_input_data[idx] = 0;
                     }
                 }
             } else {
@@ -340,13 +345,14 @@ torch::Tensor srelu_cuda_backward(torch::Tensor grad_output, torch::Tensor input
                 #pragma omp parallel for
                 for (int64_t idx = 0; idx < num_elements; idx++) {
                     scalar_t x = input_data[idx];
-                    if (x <= -st) {
-                        grad_input_data[idx] = 0;
-                    } else if (x < st) {
+                    if (x >= st) {
+                    } else if (x > -st) {
                         scalar_t ax = sa * x;
                         scalar_t sin_ax = std::sin(ax);
                         scalar_t cos_ax = std::cos(ax);
                         grad_input_data[idx] *= (ax * cos_ax + sin_ax + 1) / 2;
+                    } else {
+                        grad_input_data[idx] = 0;
                     }
                 }
             }
