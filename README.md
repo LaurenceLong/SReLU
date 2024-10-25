@@ -27,7 +27,7 @@ import numpy as np
 
 def SReLU(x, t=2):
     a = (np.pi / 2) / t
-    return np.where(x <= -t, 0, np.where(x <= t, x * (np.sin(a * x) + 1) / 2, x))
+    return np.where(x <= -t, 0, np.where(x < t, x * (np.sin(a * x) + 1) / 2, x))
 ```
 ![function.png](function.png)
 ![curve.png](curve.png)
@@ -42,7 +42,7 @@ The derivative of SReLU is crucial for backpropagation in neural networks. It is
 ```python
 def SReLU_derivative(x, t=2):
     a = (np.pi / 2) / t
-    return np.where(x <= -t, 0, np.where(x <= t, a * x * np.cos(a * x) / 2 + np.sin(a * x) / 2 + 1 / 2, 1))
+    return np.where(x <= -t, 0, np.where(x < t, a * x * np.cos(a * x) / 2 + np.sin(a * x) / 2 + 1 / 2, 1))
 ```
 ![der_function.png](der_function.png)
 ![der_curve.png](der_curve.png)

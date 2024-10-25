@@ -68,7 +68,7 @@ class SReLU(nn.Module):
     def _forward(x, t, a, inplace: bool = False):
         # 使用掩码 (mask) 的方法实现 TReLU
         mask_l = x <= -t
-        mask_r = x <= t
+        mask_r = x < t
         mask_mid = ~mask_l & mask_r
 
         if inplace:
